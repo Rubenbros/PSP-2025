@@ -14,7 +14,7 @@ package ejercicio7_biblioteca;
  */
 public class Main {
 
-    public static void main(String[] args) {
+/*    public static void main(String[] args) {
         System.out.println("=== SIMULACIÓN DE BIBLIOTECA ===\n");
 
         // Crear la biblioteca
@@ -65,5 +65,5 @@ public class Main {
         biblioteca.mostrarEstadisticas();
         System.out.println();
         biblioteca.mostrarEstadoLibros();
-    }
+    }*/
 }
