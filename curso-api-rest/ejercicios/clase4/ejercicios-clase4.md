@@ -122,6 +122,50 @@ public class QuoteController {
 
 ---
 
+## Ejemplos de respuesta JSON
+
+**GET /api/quotes** — Frase aleatoria de la API externa:
+
+```json
+{
+  "quote": "Operator! Give me the number for 911!",
+  "character": "Homer Simpson",
+  "image": "https://cdn.glitch.com/3c3ffadc-3406-4440-bb95-d40ec8fcde72%2FHomerSimpson.png"
+}
+```
+
+**POST /api/quotes/favoritas** — Guarda frase y devuelve 201:
+
+```json
+{
+  "id": 1,
+  "frase": "Operator! Give me the number for 911!",
+  "personaje": "Homer Simpson",
+  "guardadoEn": "2025-03-15T10:30:00"
+}
+```
+
+**GET /api/quotes/favoritas** — Lista de frases guardadas:
+
+```json
+[
+  {
+    "id": 1,
+    "frase": "Operator! Give me the number for 911!",
+    "personaje": "Homer Simpson",
+    "guardadoEn": "2025-03-15T10:30:00"
+  },
+  {
+    "id": 2,
+    "frase": "Don't have a cow, man!",
+    "personaje": "Bart Simpson",
+    "guardadoEn": "2025-03-15T10:31:00"
+  }
+]
+```
+
+---
+
 ## Entrega
 
 Demuestra al profesor:
