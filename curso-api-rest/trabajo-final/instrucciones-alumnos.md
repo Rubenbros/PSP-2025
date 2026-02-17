@@ -1,146 +1,52 @@
-# Instrucciones del Examen Practico - Springfield Evaluator
+# Examen Practico - Springfield Evaluator
 
 ## Introduccion
 
-Bienvenido al examen practico de **Procesos y Servicios de Programacion (PSP)**. Este examen consiste en **10 tareas** que deberas completar de forma secuencial. Cada tarea vale **1 punto**, sumando un total de **10 puntos**.
+Este examen consiste en **10 tareas** que deberas completar de forma secuencial. Cada tarea vale **1 punto**, sumando un total de **10 puntos**.
 
-El examen evalua tu capacidad para:
-- Consumir APIs REST desde tu aplicacion Spring Boot
-- Implementar tu propia API REST con operaciones CRUD
-- Manejar codigos HTTP correctamente
-- Procesar datos JSON
-- Exponer servicios que seran evaluados automaticamente
+- **Tareas 1-3**: Tu haces peticiones HTTP al servidor del profesor
+- **Tarea 4**: Configuras tu servidor y lo expones con ngrok
+- **Tareas 5-8**: Se evaluan automaticamente cuando registras/actualizas tu servidor
+- **Tareas 9-10**: Tareas avanzadas que combinan consumo y exposicion de APIs
+
+> **Las tareas 5-10 se evaluan automaticamente** cada vez que registras tu URL con la Tarea 4. Tambien puedes lanzar la evaluacion manualmente en cualquier momento (ver seccion "Evaluar tus tareas").
 
 ---
 
 ## Requisitos Previos
 
-Antes de comenzar, asegurate de tener:
-
-1. **Java 17** o superior instalado
-2. Un proyecto **Spring Boot** configurado (se recomienda Spring Boot 3.x)
-3. Dependencias necesarias en tu `pom.xml`:
-   - `spring-boot-starter-web`
-   - `spring-boot-starter-webflux` (opcional, si usas WebClient)
-4. Una cuenta en **ngrok** (https://ngrok.com) - necesaria a partir de la Tarea 4
-5. **ngrok** instalado y autenticado en tu equipo
-
-### Dependencias Maven recomendadas
-
-```xml
-<dependencies>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-web</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-webflux</artifactId>
-    </dependency>
-</dependencies>
-```
+- Java 17+
+- Proyecto Spring Boot con `spring-boot-starter-web`
+- Cuenta en [ngrok](https://ngrok.com) (a partir de la Tarea 4)
 
 ---
 
 ## URL Base
 
-A lo largo de estas instrucciones, se usa `{BASE_URL}` para referirse a la URL del servidor del profesor. Sustituye `{BASE_URL}` por la URL real que te proporcionara el profesor (por ejemplo: `https://springfield-evaluator.vercel.app`).
+Sustituye `{BASE_URL}` por: **`https://springfield-evaluator.vercel.app`**
 
 ---
 
-## Tareas
+## Tareas 1-3: Peticiones al servidor del profesor
 
 ### Tarea 1 - Registro
 
-**Objetivo:** Registrarte en el sistema del evaluador.
+Haz una peticion **GET** a `{BASE_URL}/api/tareas/1` pasando tu nombre y apellido como query parameter `nombre` (sin espacios ni tildes).
 
-**Que debes hacer:**
-Realiza una peticion GET al servidor del profesor con tu nombre y apellido (sin espacios, sin tildes).
-
-**Endpoint:**
-```
-GET {BASE_URL}/api/tareas/1?nombre=NombreApellido
-```
-
-**Ejemplo con curl:**
-```bash
-curl "{BASE_URL}/api/tareas/1?nombre=HomerSimpson"
-```
-
-**Respuesta esperada (ejemplo):**
-```json
-{
-  "alumno_id": 1,
-  "mensaje": "Registro completado correctamente"
-}
-```
-
-**Codigo Java con RestTemplate:**
-```java
-@Service
-public class TareaService {
-
-    private final RestTemplate restTemplate = new RestTemplate();
-    private static final String BASE_URL = "{BASE_URL}";
-
-    public void tarea1() {
-        String url = BASE_URL + "/api/tareas/1?nombre=NombreApellido";
-        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-        System.out.println("Respuesta: " + response.getBody());
-    }
-}
-```
-
-> **IMPORTANTE:** Guarda el `alumno_id` que recibas. Lo necesitaras para todas las tareas siguientes.
+Guarda el `alumno_id` de la respuesta — lo necesitas para todo lo demas.
 
 ---
 
-### Tarea 2 - Enviar datos personales
+### Tarea 2 - Datos personales
 
-**Objetivo:** Enviar tus datos personales al servidor del profesor.
+Envia una peticion **POST** a `{BASE_URL}/api/tareas/2` con el siguiente body JSON:
 
-**Que debes hacer:**
-Realiza una peticion POST enviando un JSON con tus datos.
-
-**Endpoint:**
-```
-POST {BASE_URL}/api/tareas/2
-```
-
-**Body JSON:**
 ```json
 {
-  "alumno_id": 1,
-  "nombre": "Homer",
-  "apellidos": "Simpson",
-  "email": "homer@springfield.com"
-}
-```
-
-**Ejemplo con curl:**
-```bash
-curl -X POST "{BASE_URL}/api/tareas/2" \
-  -H "Content-Type: application/json" \
-  -d '{"alumno_id": 1, "nombre": "Homer", "apellidos": "Simpson", "email": "homer@springfield.com"}'
-```
-
-**Codigo Java con RestTemplate:**
-```java
-public void tarea2(int alumnoId) {
-    String url = BASE_URL + "/api/tareas/2";
-
-    Map<String, Object> body = new HashMap<>();
-    body.put("alumno_id", alumnoId);
-    body.put("nombre", "Homer");
-    body.put("apellidos", "Simpson");
-    body.put("email", "homer@springfield.com");
-
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-
-    HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-    ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
-    System.out.println("Respuesta: " + response.getBody());
+  "alumno_id": <tu_id>,
+  "nombre": "...",
+  "apellidos": "...",
+  "email": "..."
 }
 ```
 
@@ -148,661 +54,206 @@ public void tarea2(int alumnoId) {
 
 ### Tarea 3 - Filtrar y calcular
 
-**Objetivo:** Obtener una lista de personajes de Springfield, filtrarlos y calcular la media de edad.
+Esta tarea tiene dos pasos:
 
-**Paso 1 - Obtener datos:**
-```
-GET {BASE_URL}/api/tareas/3?alumno_id=1
-```
+**Paso 1** — Haz un **GET** a `{BASE_URL}/api/tareas/3` pasando tu `alumno_id` como query parameter. Recibiras una lista de personajes de Springfield con nombre y edad.
 
-Recibiras una lista de personajes con nombre y edad:
-```json
-[
-  {"nombre": "Homer Simpson", "edad": 39},
-  {"nombre": "Bart Simpson", "edad": 10},
-  {"nombre": "Marge Simpson", "edad": 36},
-  ...
-]
-```
+**Paso 2** — Procesa los datos y envia el resultado con un **POST** al mismo endpoint:
+- Filtra los personajes **mayores de 18 anios**
+- Ordenalos **alfabeticamente por nombre**
+- Calcula la **media de edad** de los filtrados
 
-**Paso 2 - Procesar datos:**
-1. Filtra los personajes **mayores de 18 anios**
-2. Ordena los personajes filtrados **alfabeticamente por nombre**
-3. Calcula la **media de edad** de los personajes filtrados
+Body del POST:
 
-**Paso 3 - Enviar resultado:**
-```
-POST {BASE_URL}/api/tareas/3
-```
-
-**Body JSON:**
 ```json
 {
-  "alumno_id": 1,
+  "alumno_id": <tu_id>,
   "resultado": {
     "personajes_filtrados": [
-      {"nombre": "Apu Nahasapeemapetilon", "edad": 45},
-      {"nombre": "Homer Simpson", "edad": 39},
-      {"nombre": "Marge Simpson", "edad": 36},
-      {"nombre": "Montgomery Burns", "edad": 104},
-      {"nombre": "Ned Flanders", "edad": 60}
+      { "nombre": "...", "edad": ... },
+      ...
     ],
-    "media_edad": 56.8
+    "media_edad": <numero>
   }
 }
 ```
 
-**Ejemplo con curl:**
-```bash
-# Paso 1: Obtener personajes
-curl "{BASE_URL}/api/tareas/3?alumno_id=1"
+---
 
-# Paso 2: Enviar resultado procesado
-curl -X POST "{BASE_URL}/api/tareas/3" \
-  -H "Content-Type: application/json" \
-  -d '{"alumno_id": 1, "resultado": {"personajes_filtrados": [...], "media_edad": 56.8}}'
-```
+## Tarea 4: Exponer tu servidor
 
-**Codigo Java con RestTemplate:**
-```java
-public void tarea3(int alumnoId) {
-    // Paso 1: Obtener personajes
-    String getUrl = BASE_URL + "/api/tareas/3?alumno_id=" + alumnoId;
-    ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
-        getUrl, HttpMethod.GET, null,
-        new ParameterizedTypeReference<List<Map<String, Object>>>() {}
-    );
-    List<Map<String, Object>> personajes = response.getBody();
+1. Implementa un endpoint **GET /ping** en tu servidor que devuelva `{"status": "ok"}`
+2. Arranca tu servidor Spring Boot (puerto 8080)
+3. Expone tu servidor con ngrok
+4. Registra tu URL haciendo un **POST** a `{BASE_URL}/api/tareas/4`:
 
-    // Paso 2: Filtrar mayores de 18 y ordenar alfabeticamente
-    List<Map<String, Object>> filtrados = personajes.stream()
-        .filter(p -> ((Number) p.get("edad")).intValue() > 18)
-        .sorted(Comparator.comparing(p -> (String) p.get("nombre")))
-        .collect(Collectors.toList());
-
-    // Paso 3: Calcular media de edad
-    double media = filtrados.stream()
-        .mapToInt(p -> ((Number) p.get("edad")).intValue())
-        .average()
-        .orElse(0.0);
-
-    // Paso 4: Enviar resultado
-    String postUrl = BASE_URL + "/api/tareas/3";
-    Map<String, Object> resultado = new HashMap<>();
-    resultado.put("personajes_filtrados", filtrados);
-    resultado.put("media_edad", media);
-
-    Map<String, Object> body = new HashMap<>();
-    body.put("alumno_id", alumnoId);
-    body.put("resultado", resultado);
-
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-
-    ResponseEntity<String> postResponse = restTemplate.postForEntity(postUrl, request, String.class);
-    System.out.println("Respuesta: " + postResponse.getBody());
+```json
+{
+  "alumno_id": <tu_id>,
+  "url": "https://xxxx.ngrok-free.app"
 }
 ```
+
+El servidor del profesor llamara a tu `/ping` para verificar. Si el ping es exitoso, **automaticamente se evaluaran las tareas 5-10** y recibiras los resultados en la respuesta.
+
+Manten ngrok activo durante todo el examen. Si reinicias ngrok la URL cambia y deberas volver a enviarla.
 
 ---
 
-### Tarea 4 - Configurar ngrok y exponer tu servidor
+## Evaluar tus tareas
 
-**Objetivo:** Hacer que tu servidor Spring Boot sea accesible desde Internet usando ngrok.
+Puedes lanzar la evaluacion de tus tareas 5-10 en cualquier momento haciendo un **POST** a `{BASE_URL}/api/tareas/evaluar`:
 
-**Que debes hacer:**
-
-1. Asegurate de que tu proyecto Spring Boot esta corriendo (por defecto en el puerto 8080).
-2. En tu servidor, implementa un endpoint `/ping` que devuelva:
-   ```json
-   {"status": "ok"}
-   ```
-
-   ```java
-   @RestController
-   public class PingController {
-       @GetMapping("/ping")
-       public Map<String, String> ping() {
-           return Map.of("status", "ok");
-       }
-   }
-   ```
-
-3. Abre ngrok y exponlo:
-   ```bash
-   ngrok http 8080
-   ```
-
-4. Copia la URL que te da ngrok (por ejemplo: `https://abc123.ngrok-free.app`)
-
-5. Envia tu URL al servidor del profesor:
-   ```
-   POST {BASE_URL}/api/tareas/4
-   ```
-
-   ```json
-   {
-     "alumno_id": 1,
-     "url": "https://abc123.ngrok-free.app"
-   }
-   ```
-
-**Ejemplo con curl:**
-```bash
-curl -X POST "{BASE_URL}/api/tareas/4" \
-  -H "Content-Type: application/json" \
-  -d '{"alumno_id": 1, "url": "https://abc123.ngrok-free.app"}'
+```json
+{"alumno_id": <tu_id>}
 ```
 
-**Codigo Java:**
-```java
-public void tarea4(int alumnoId, String ngrokUrl) {
-    String url = BASE_URL + "/api/tareas/4";
+Si quieres evaluar una tarea concreta:
 
-    Map<String, Object> body = new HashMap<>();
-    body.put("alumno_id", alumnoId);
-    body.put("url", ngrokUrl);
-
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-
-    ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
-    System.out.println("Respuesta: " + response.getBody());
-}
+```json
+{"alumno_id": <tu_id>, "tarea": 7}
 ```
 
-> **IMPORTANTE:** A partir de aqui, el servidor del profesor hara peticiones a TU servidor. Asegurate de que ngrok sigue activo durante todo el examen.
+La respuesta te dira que tareas has completado y cuales no, con mensajes de error para ayudarte a corregir.
 
 ---
 
-### Tarea 5 - API CRUD: Crear y leer personajes
+## Tareas 5-8: Tu API REST
 
-**Objetivo:** Implementar en tu servidor Spring Boot los endpoints para crear y leer personajes.
+Los tests automaticos haran peticiones a tu servidor. Asegurate de que ngrok esta activo.
 
-**Que debes implementar en tu servidor:**
+### Tarea 5 - Crear y leer personajes
 
-1. `POST /api/personajes` - Crear un personaje
-   - Recibe: `{"nombre": "...", "edad": ..., "profesion": "..."}`
-   - Devuelve: El personaje creado con su `id` y codigo **201 Created**
+Implementa estos endpoints:
 
-2. `GET /api/personajes` - Listar todos los personajes
-   - Devuelve: Array de personajes
+| Metodo | Endpoint | Descripcion | Codigo |
+|--------|----------|-------------|--------|
+| POST | `/api/personajes` | Crear personaje | 201 |
+| GET | `/api/personajes` | Listar todos | 200 |
+| GET | `/api/personajes/{id}` | Obtener por id | 200 |
 
-3. `GET /api/personajes/{id}` - Obtener un personaje por ID
-   - Devuelve: El personaje correspondiente
-
-**Ejemplo de modelo:**
-```java
-@Entity
-public class Personaje {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String nombre;
-    private int edad;
-    private String profesion;
-
-    // Getters y Setters
-}
-```
-
-**Ejemplo de controlador:**
-```java
-@RestController
-@RequestMapping("/api/personajes")
-public class PersonajeController {
-
-    private final List<Personaje> personajes = new ArrayList<>();
-    private long nextId = 1;
-
-    @PostMapping
-    public ResponseEntity<Personaje> crear(@RequestBody Personaje personaje) {
-        personaje.setId(nextId++);
-        personajes.add(personaje);
-        return ResponseEntity.status(HttpStatus.CREATED).body(personaje);
-    }
-
-    @GetMapping
-    public List<Personaje> listar() {
-        return personajes;
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Personaje> obtenerPorId(@PathVariable Long id) {
-        return personajes.stream()
-            .filter(p -> p.getId().equals(id))
-            .findFirst()
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
-    }
-}
-```
-
-**Como se evalua:**
-El servidor del profesor hara peticiones a tu servidor para verificar que los endpoints funcionan correctamente. Asegurate de que ngrok sigue activo.
-
-Para lanzar la evaluacion:
-```bash
-# Desde el dashboard del profesor, o manualmente:
-curl "{BASE_URL}/api/evaluar/{alumno_id}/5"
-```
+El body del POST sera un JSON con `nombre`, `edad` y `profesion`. La respuesta del POST debe incluir un campo `id`.
 
 ---
 
 ### Tarea 6 - CRUD completo
 
-**Objetivo:** Completar tu API anadiendo operaciones de actualizar y eliminar.
+Anade estos endpoints al controlador anterior:
 
-**Que debes implementar:**
+| Metodo | Endpoint | Descripcion | Codigo |
+|--------|----------|-------------|--------|
+| PUT | `/api/personajes/{id}` | Actualizar | 200 |
+| DELETE | `/api/personajes/{id}` | Eliminar | 204 |
 
-1. `PUT /api/personajes/{id}` - Actualizar un personaje
-   - Recibe: `{"nombre": "...", "edad": ..., "profesion": "..."}`
-   - Devuelve: El personaje actualizado
-
-2. `DELETE /api/personajes/{id}` - Eliminar un personaje
-   - Devuelve: Codigo **204 No Content**
-
-**Ejemplo de controlador (anadido a la Tarea 5):**
-```java
-@PutMapping("/{id}")
-public ResponseEntity<Personaje> actualizar(@PathVariable Long id, @RequestBody Personaje datos) {
-    for (int i = 0; i < personajes.size(); i++) {
-        if (personajes.get(i).getId().equals(id)) {
-            datos.setId(id);
-            personajes.set(i, datos);
-            return ResponseEntity.ok(datos);
-        }
-    }
-    return ResponseEntity.notFound().build();
-}
-
-@DeleteMapping("/{id}")
-public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-    boolean eliminado = personajes.removeIf(p -> p.getId().equals(id));
-    if (eliminado) {
-        return ResponseEntity.noContent().build();
-    }
-    return ResponseEntity.notFound().build();
-}
-```
-
-**Como se evalua:**
-El profesor creara un personaje, verificara que existe, lo actualizara, verificara el cambio, lo eliminara y comprobara que ya no existe (404).
+El test creara un personaje, lo actualizara, verificara el cambio, lo eliminara y comprobara que devuelve 404.
 
 ---
 
-### Tarea 7 - Codigos HTTP correctos
+### Tarea 7 - Codigos HTTP exactos
 
-**Objetivo:** Asegurar que tu API devuelve los codigos HTTP adecuados en cada situacion.
-
-**Codigos esperados:**
+Tu API debe devolver exactamente estos codigos:
 
 | Situacion | Codigo esperado |
-|---|---|
-| `GET /api/personajes/99999` (no existe) | **404 Not Found** |
-| `POST /api/personajes` con body vacio | **400 Bad Request** |
-| `POST /api/personajes` con datos validos | **201 Created** |
-| `DELETE /api/personajes/{id}` existente | **204 No Content** |
-| `DELETE /api/personajes/99999` (no existe) | **404 Not Found** |
-
-**Ejemplo de validacion en el POST:**
-```java
-@PostMapping
-public ResponseEntity<?> crear(@RequestBody(required = false) Personaje personaje) {
-    if (personaje == null || personaje.getNombre() == null || personaje.getNombre().isBlank()) {
-        return ResponseEntity.badRequest()
-            .body(Map.of("error", "El nombre es obligatorio"));
-    }
-    personaje.setId(nextId++);
-    personajes.add(personaje);
-    return ResponseEntity.status(HttpStatus.CREATED).body(personaje);
-}
-```
+|-----------|-----------------|
+| GET de un id que no existe | 404 |
+| POST con body vacio `{}` | 400 |
+| POST con datos validos | 201 |
+| DELETE de un id existente | 204 |
+| DELETE de un id que no existe | 404 |
 
 ---
 
 ### Tarea 8 - Validaciones y busqueda
 
-**Objetivo:** Implementar validaciones robustas y un endpoint de busqueda.
+1. POST con `nombre` vacio (`""`) debe devolver **400** con informacion del error en el body
+2. POST con `{}` debe devolver **400**
+3. Implementa un endpoint **GET /api/personajes/buscar** que acepte un query parameter `nombre` y devuelva un array con los personajes cuyo nombre contenga el texto buscado (sin importar mayusculas/minusculas)
 
-**Que debes implementar:**
+---
 
-1. Validar que el campo `nombre` no este vacio al crear un personaje
-2. Validar que el body no este vacio al crear un personaje
-3. Implementar un endpoint de busqueda:
+## Tareas 9-10: Avanzadas
 
-```
-GET /api/personajes/buscar?nombre=Krusty
-```
+### Tarea 9 - Consumir API y exponer estadisticas
 
-Debe devolver un array con los personajes cuyo nombre contenga el texto buscado.
+Tu servidor debe exponer un endpoint **GET /api/estadisticas**.
 
-**Ejemplo de endpoint de busqueda:**
-```java
-@GetMapping("/buscar")
-public List<Personaje> buscar(@RequestParam String nombre) {
-    return personajes.stream()
-        .filter(p -> p.getNombre().toLowerCase().contains(nombre.toLowerCase()))
-        .collect(Collectors.toList());
+Cuando el evaluador llame a ese endpoint, tu servidor debe llamar a `{BASE_URL}/api/tareas/9/ciudadanos` (pasando tu `alumno_id` como query parameter) para obtener una lista de ciudadanos. Cada ciudadano tiene `nombre`, `edad` y `salario`.
+
+Tu endpoint debe calcular y devolver:
+
+```json
+{
+  "salario_medio": <media de todos los salarios>,
+  "persona_mas_joven": "<nombre de la persona con menor edad>",
+  "mayor_salario": "<nombre de la persona con mayor salario>"
 }
 ```
 
 ---
 
-### Tarea 9 - Consumir API externa y exponer estadisticas
+### Tarea 10 - Flujo multi-paso
 
-**Objetivo:** Tu servidor debe consumir datos del servidor del profesor y exponer un endpoint con estadisticas calculadas.
+Esta tarea requiere que tu servidor haga varias peticiones al profesor y luego exponga un endpoint de verificacion.
 
-**Paso 1:** Tu servidor debe hacer una peticion GET al endpoint del profesor para obtener los datos de ciudadanos:
-```
-GET {BASE_URL}/api/tareas/9/ciudadanos?alumno_id={tu_alumno_id}
-```
+**Paso 1** — Inicia el flujo haciendo un **POST** a `{BASE_URL}/api/tareas/10/iniciar`:
 
-Recibiras una lista como:
 ```json
-[
-  {"nombre": "Homer Simpson", "edad": 39, "salario": 25000},
-  {"nombre": "Ned Flanders", "edad": 60, "salario": 45000},
-  ...
-]
+{"alumno_id": <tu_id>}
 ```
 
-**Paso 2:** Implementa un endpoint en tu servidor:
-```
-GET /api/estadisticas
-```
+Recibiras un `token` en la respuesta.
 
-Que devuelva:
+**Paso 2** — Haz un **GET** a `{BASE_URL}/api/tareas/10/productos` enviando el token en la cabecera `Authorization: Bearer <token>`. Recibiras una lista de productos con `nombre` y `precio`.
+
+**Paso 3** — Procesa los productos: a los que tengan precio **mayor que 50**, aplica un **10% de descuento**. Los demas se quedan igual. Calcula el **total** sumando todos los precios finales.
+
+**Paso 4** — Envia el resultado con un **POST** a `{BASE_URL}/api/tareas/10/resultado`:
+
 ```json
 {
-  "salario_medio": 35000.0,
-  "persona_mas_joven": "Bart Simpson",
-  "mayor_salario": "Montgomery Burns"
-}
-```
-
-Donde:
-- `salario_medio`: la media aritmetica de todos los salarios
-- `persona_mas_joven`: el nombre de la persona con menor edad
-- `mayor_salario`: el nombre de la persona con el salario mas alto
-
-**Ejemplo de implementacion con RestTemplate:**
-```java
-@RestController
-@RequestMapping("/api")
-public class EstadisticasController {
-
-    private final RestTemplate restTemplate = new RestTemplate();
-    private static final String BASE_URL = "{BASE_URL}";
-    private static final int ALUMNO_ID = 1; // Tu alumno_id
-
-    @GetMapping("/estadisticas")
-    public Map<String, Object> estadisticas() {
-        String url = BASE_URL + "/api/tareas/9/ciudadanos?alumno_id=" + ALUMNO_ID;
-
-        ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
-            url, HttpMethod.GET, null,
-            new ParameterizedTypeReference<List<Map<String, Object>>>() {}
-        );
-        List<Map<String, Object>> ciudadanos = response.getBody();
-
-        double salarioMedio = ciudadanos.stream()
-            .mapToDouble(c -> ((Number) c.get("salario")).doubleValue())
-            .average()
-            .orElse(0.0);
-
-        String masJoven = ciudadanos.stream()
-            .min(Comparator.comparingInt(c -> ((Number) c.get("edad")).intValue()))
-            .map(c -> (String) c.get("nombre"))
-            .orElse("");
-
-        String mayorSalario = ciudadanos.stream()
-            .max(Comparator.comparingDouble(c -> ((Number) c.get("salario")).doubleValue()))
-            .map(c -> (String) c.get("nombre"))
-            .orElse("");
-
-        Map<String, Object> resultado = new HashMap<>();
-        resultado.put("salario_medio", salarioMedio);
-        resultado.put("persona_mas_joven", masJoven);
-        resultado.put("mayor_salario", mayorSalario);
-
-        return resultado;
-    }
-}
-```
-
----
-
-### Tarea 10 - Flujo multi-paso con autenticacion
-
-**Objetivo:** Implementar un flujo completo que involucra autenticacion con token, procesamiento de datos y verificacion.
-
-**Paso 1:** Tu servidor inicia el flujo haciendo:
-```
-POST {BASE_URL}/api/tareas/10/iniciar
-Body: {"alumno_id": 1}
-```
-
-Recibiras un token:
-```json
-{"token": "abc123-uuid-aqui"}
-```
-
-**Paso 2:** Usa el token para obtener la lista de productos:
-```
-GET {BASE_URL}/api/tareas/10/productos
-Header: Authorization: Bearer abc123-uuid-aqui
-```
-
-Recibiras:
-```json
-[
-  {"nombre": "Dona de Homer", "precio": 75.0},
-  {"nombre": "Cerveza Duff", "precio": 30.0},
-  {"nombre": "Saxofon de Lisa", "precio": 120.0},
-  ...
-]
-```
-
-**Paso 3:** Procesa los productos aplicando un **10% de descuento** a los que cuesten **mas de 50 euros**. Calcula el total.
-
-Ejemplo:
-- "Dona de Homer" (75.0) -> 75.0 * 0.9 = 67.5
-- "Cerveza Duff" (30.0) -> 30.0 (sin descuento, <= 50)
-- "Saxofon de Lisa" (120.0) -> 120.0 * 0.9 = 108.0
-
-**Paso 4:** Envia el resultado al servidor del profesor:
-```
-POST {BASE_URL}/api/tareas/10/resultado
-```
-```json
-{
-  "alumno_id": 1,
-  "token": "abc123-uuid-aqui",
+  "alumno_id": <tu_id>,
+  "token": "<token>",
   "productos_procesados": [
-    {"nombre": "Dona de Homer", "precio_original": 75.0, "precio_final": 67.5},
-    {"nombre": "Cerveza Duff", "precio_original": 30.0, "precio_final": 30.0},
-    {"nombre": "Saxofon de Lisa", "precio_original": 120.0, "precio_final": 108.0}
+    {
+      "nombre": "...",
+      "precio_original": ...,
+      "precio_final": ...,
+      "descuento_aplicado": true/false
+    },
+    ...
   ],
-  "total": 205.5
+  "total": <total>
 }
 ```
 
-Recibiras un codigo de verificacion:
+Recibiras un `codigo_verificacion` en la respuesta.
+
+**Paso 5** — Expone un endpoint **GET /api/verificacion** en tu servidor que devuelva:
+
 ```json
-{"codigo_verificacion": "SPRING-XXXX"}
-```
-
-**Paso 5:** Implementa en tu servidor un endpoint:
-```
-GET /api/verificacion
-```
-
-Que devuelva:
-```json
-{"codigo_verificacion": "SPRING-XXXX"}
-```
-
-**Ejemplo de implementacion completa:**
-```java
-@RestController
-@RequestMapping("/api")
-public class VerificacionController {
-
-    private final RestTemplate restTemplate = new RestTemplate();
-    private static final String BASE_URL = "{BASE_URL}";
-    private static final int ALUMNO_ID = 1;
-    private String codigoVerificacion;
-
-    @PostMapping("/realizar-tarea10")
-    public Map<String, Object> realizarTarea10() {
-        // Paso 1: Iniciar flujo
-        Map<String, Object> iniciarBody = Map.of("alumno_id", ALUMNO_ID);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        ResponseEntity<Map> iniciarResp = restTemplate.postForEntity(
-            BASE_URL + "/api/tareas/10/iniciar",
-            new HttpEntity<>(iniciarBody, headers), Map.class
-        );
-        String token = (String) iniciarResp.getBody().get("token");
-
-        // Paso 2: Obtener productos con token
-        HttpHeaders authHeaders = new HttpHeaders();
-        authHeaders.set("Authorization", "Bearer " + token);
-        ResponseEntity<List<Map<String, Object>>> productosResp = restTemplate.exchange(
-            BASE_URL + "/api/tareas/10/productos",
-            HttpMethod.GET,
-            new HttpEntity<>(authHeaders),
-            new ParameterizedTypeReference<List<Map<String, Object>>>() {}
-        );
-        List<Map<String, Object>> productos = productosResp.getBody();
-
-        // Paso 3: Procesar - 10% descuento a los que cuestan > 50
-        List<Map<String, Object>> procesados = new ArrayList<>();
-        double total = 0;
-        for (Map<String, Object> prod : productos) {
-            double precioOriginal = ((Number) prod.get("precio")).doubleValue();
-            double precioFinal = precioOriginal > 50 ? precioOriginal * 0.9 : precioOriginal;
-            total += precioFinal;
-
-            Map<String, Object> procesado = new HashMap<>();
-            procesado.put("nombre", prod.get("nombre"));
-            procesado.put("precio_original", precioOriginal);
-            procesado.put("precio_final", precioFinal);
-            procesados.add(procesado);
-        }
-
-        // Paso 4: Enviar resultado
-        Map<String, Object> resultadoBody = new HashMap<>();
-        resultadoBody.put("alumno_id", ALUMNO_ID);
-        resultadoBody.put("token", token);
-        resultadoBody.put("productos_procesados", procesados);
-        resultadoBody.put("total", total);
-
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        ResponseEntity<Map> resultadoResp = restTemplate.postForEntity(
-            BASE_URL + "/api/tareas/10/resultado",
-            new HttpEntity<>(resultadoBody, headers), Map.class
-        );
-
-        codigoVerificacion = (String) resultadoResp.getBody().get("codigo_verificacion");
-        return Map.of("codigo_verificacion", codigoVerificacion);
-    }
-
-    @GetMapping("/verificacion")
-    public Map<String, String> verificacion() {
-        return Map.of("codigo_verificacion", codigoVerificacion != null ? codigoVerificacion : "");
-    }
-}
+{"codigo_verificacion": "SPR-XXXXXXXX"}
 ```
 
 ---
 
-## Guia de Configuracion de ngrok
+## Configuracion de ngrok
 
-### 1. Crear cuenta
-Ve a https://ngrok.com y crea una cuenta gratuita.
-
-### 2. Instalar ngrok
-Descarga ngrok desde https://ngrok.com/download e instalalo.
-
-### 3. Autenticarte
-```bash
-ngrok config add-authtoken TU_TOKEN_AQUI
-```
-(Encuentra tu token en https://dashboard.ngrok.com/get-started/your-authtoken)
-
-### 4. Exponer tu servidor
-```bash
-ngrok http 8080
-```
-
-### 5. Copiar la URL
-Veras algo como:
-```
-Forwarding  https://abc123.ngrok-free.app -> http://localhost:8080
-```
-Copia la URL HTTPS. Esta es la URL que enviaras en la Tarea 4.
-
-> **Nota:** La URL de ngrok cambia cada vez que lo reinicias (en la version gratuita). Si reinicias ngrok, deberas enviar la nueva URL en la Tarea 4 otra vez.
+1. Crea cuenta en https://ngrok.com
+2. Descarga e instala ngrok
+3. Autenticate con tu authtoken
+4. Expone tu servidor con ngrok apuntando al puerto 8080
+5. Usa la URL HTTPS que aparece en la terminal
 
 ---
 
-## Resolucion de Problemas
+## Errores comunes
 
-### Error "alumno_id no encontrado"
-- Asegurate de haberte registrado primero con la Tarea 1
-- Verifica que estas usando el `alumno_id` correcto
-
-### Error "Campos obligatorios faltantes"
-- Revisa que tu JSON tenga todos los campos requeridos
-- Verifica que el `Content-Type` sea `application/json`
-
-### Error al conectar con ngrok
-- Verifica que tu servidor Spring Boot esta corriendo
-- Comprueba que ngrok esta activo y apuntando al puerto correcto
-- Prueba acceder a tu URL de ngrok desde el navegador
-
-### Error 404 en tus endpoints
-- Asegurate de que las rutas coinciden exactamente con las especificadas
-- Revisa que tu aplicacion Spring Boot no tiene un `context-path` configurado
-- Verifica que el controlador tiene las anotaciones correctas (`@RestController`, `@RequestMapping`)
-
-### Error de CORS
-Si recibes errores de CORS, anade esta configuracion:
-```java
-@Configuration
-public class CorsConfig implements WebMvcConfigurer {
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-            .allowedOrigins("*")
-            .allowedMethods("*")
-            .allowedHeaders("*");
-    }
-}
-```
-
-### Error "Connection refused" desde el servidor del profesor
-- ngrok debe estar corriendo
-- Tu servidor Spring Boot debe estar corriendo
-- La URL enviada en la Tarea 4 debe ser la actual de ngrok
-
-### Los datos se pierden al reiniciar
-- Si usas almacenamiento en memoria (ArrayList), los datos se pierden al reiniciar
-- Para el examen esto es aceptable, simplemente re-ejecuta las tareas que creen datos
+- **"alumno_id no encontrado"**: Asegurate de haberte registrado (Tarea 1) y usar el id correcto
+- **"Campos obligatorios faltantes"**: Revisa que envias todos los campos y que el header `Content-Type: application/json` esta presente
+- **No se puede conectar a tu servidor**: Verifica que ngrok y tu Spring Boot estan corriendo, y que la URL registrada es la actual
+- **404 en tus endpoints**: Revisa que las rutas coinciden exactamente (`/api/personajes`, no `/personajes`)
+- **Los datos desaparecen**: Si usas almacenamiento en memoria, se pierden al reiniciar. Re-ejecuta lo necesario
 
 ---
-
-## Flujo Recomendado
-
-1. **Tareas 1-3:** Haz peticiones HTTP al servidor del profesor desde tu codigo Java
-2. **Tarea 4:** Configura ngrok y registra tu URL
-3. **Tareas 5-8:** Implementa la API CRUD en tu servidor - el profesor la evaluara remotamente
-4. **Tarea 9:** Consume la API del profesor y expone estadisticas
-5. **Tarea 10:** Completa el flujo multi-paso con autenticacion
 
 Buena suerte!
