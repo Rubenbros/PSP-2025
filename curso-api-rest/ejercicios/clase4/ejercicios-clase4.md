@@ -130,4 +130,3 @@ Demuestra al profesor:
 - [ ] `POST /api/quotes/favoritas` → Guarda una frase (201 Created)
 - [ ] `POST /api/quotes/favoritas` → Guarda otra frase
 - [ ] `GET /api/quotes/favoritas` → Lista las frases guardadas
-- [ ] Verifica en H2 que las frases están en la tabla `FRASE_FAVORITA`
