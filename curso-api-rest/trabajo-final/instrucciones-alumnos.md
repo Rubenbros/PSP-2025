@@ -156,18 +156,25 @@ Tu API debe devolver exactamente estos codigos:
 | Situacion | Codigo esperado |
 |-----------|-----------------|
 | GET de un id que no existe | 404 |
-| POST con body vacio `{}` | 400 |
 | POST con datos validos | 201 |
 | DELETE de un id existente | 204 |
 | DELETE de un id que no existe | 404 |
 
 ---
 
-### Tarea 8 - Validaciones y busqueda
+### Tarea 8 - Busqueda y ordenacion
 
-1. POST con `nombre` vacio (`""`) debe devolver **400** con informacion del error en el body
-2. POST con `{}` debe devolver **400**
-3. Implementa un endpoint **GET /api/personajes/buscar** que acepte un query parameter `nombre` y devuelva un array con los personajes cuyo nombre contenga el texto buscado (sin importar mayusculas/minusculas)
+1. Implementa un endpoint de busqueda:
+
+**GET /api/personajes/buscar?nombre=\<texto\>**
+
+Debe devolver un array con los personajes cuyo nombre contenga el texto buscado (sin importar mayusculas/minusculas). Si no hay resultados, devuelve un array vacio.
+
+2. Anade un parametro de ordenacion al listado de personajes:
+
+**GET /api/personajes?ordenar=nombre** — devuelve todos los personajes ordenados alfabeticamente por nombre
+
+**GET /api/personajes?ordenar=edad** — devuelve todos los personajes ordenados por edad de menor a mayor
 
 ---
 
